@@ -1,0 +1,113 @@
+# HarvestForge Local Development Environment
+# Run: docker compose up -d
+# Access: API on :3001, Web on :5173, PG on :5432, Redis on :6379
+
+services:
+  # ─── PostgreSQL + PostGIS ───────────────────────────────────
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: hf-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: harvestforge
+      POSTGRES_USER: harvestforge
+      POSTGRES_PASSWORD: hf_dev_password_2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./packages/api/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U harvestforge"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─── Redis ──────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: hf-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─── API Server ─────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    container_name: hf-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://harvestforge:hf_dev_password_2026@postgres:5432/harvestforge
+      REDIS_URL: redis://redis:6379
+      SOLVER_URL: http://solver:8001
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      JD_CLIENT_ID: ${JD_CLIENT_ID:-}
+      JD_CLIENT_SECRET: ${JD_CLIENT_SECRET:-}
+      JD_REDIRECT_URI: http://localhost:3001/v1/auth/jd/callback
+      MAPBOX_TOKEN: ${MAPBOX_TOKEN:-}
+      WEATHER_API_KEY: ${WEATHER_API_KEY:-}
+    volumes:
+      - ./packages/api/src:/app/packages/api/src
+      - ./packages/shared/src:/app/packages/shared/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run dev:api
+
+  # ─── Optimization Solver ────────────────────────────────────
+  solver:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.solver
+    container_name: hf-solver
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://harvestforge:hf_dev_password_2026@postgres:5432/harvestforge
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./packages/solver:/app/packages/solver
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn harvestforge_solver.server:app --host 0.0.0.0 --port 8001 --reload
+
+  # ─── Web Frontend ──────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.web
+    container_name: hf-web
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:3001/v1
+      VITE_WS_URL: ws://localhost:3001/ws
+      VITE_MAPBOX_TOKEN: ${MAPBOX_TOKEN:-}
+    volumes:
+      - ./packages/web/src:/app/packages/web/src
+      - ./packages/shared/src:/app/packages/shared/src
+    depends_on:
+      - api
+    command: npm run dev:web
+
+volumes:
+  pg_data:
+  redis_data:

@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --hf-green: #4CAF50;
+  --hf-green-dim: #2E7D32;
+  --hf-bg: #0a0f0a;
+  --hf-card: #111a11;
+}
+
+/* Harvest Mode — high contrast amber/black for sunlight */
+.harvest-mode {
+  --hf-green: #f59e0b;
+  --hf-green-dim: #d97706;
+  --hf-bg: #000000;
+  --hf-card: #1a1200;
+}
+
+/* Smooth map marker transitions */
+.mapboxgl-marker {
+  transition: transform 0.5s ease-out;
+}
+
+/* Gantt drag cursor */
+.gantt-draggable {
+  cursor: grab;
+}
+.gantt-draggable:active {
+  cursor: grabbing;
+}

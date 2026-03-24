@@ -1,0 +1,19 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies first for caching
+COPY package.json package-lock.json* ./
+COPY packages/api/package.json ./packages/api/
+COPY packages/shared/package.json ./packages/shared/
+
+RUN npm install --workspace=packages/api --workspace=packages/shared
+
+# Copy source
+COPY packages/api ./packages/api
+COPY packages/shared ./packages/shared
+COPY tsconfig.base.json ./
+
+EXPOSE 3001
+
+CMD ["npm", "run", "dev:api"]

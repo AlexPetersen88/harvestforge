@@ -1,0 +1,29 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Docker volumes
+pg_data/
+redis_data/
+
+# Build artifacts
+packages/web/dist/
+packages/api/dist/
+packages/shared/dist/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# OS
+Thumbs.db

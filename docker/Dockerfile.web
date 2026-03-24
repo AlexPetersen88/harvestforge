@@ -1,0 +1,17 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+COPY packages/web/package.json ./packages/web/
+COPY packages/shared/package.json ./packages/shared/
+
+RUN npm install --workspace=packages/web --workspace=packages/shared
+
+COPY packages/web ./packages/web
+COPY packages/shared ./packages/shared
+COPY tsconfig.base.json ./
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev:web"]
