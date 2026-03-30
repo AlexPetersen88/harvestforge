@@ -1,14 +1,14 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Sun, BookOpen, Settings, BarChart3, Sliders, Bell, FlaskConical } from 'lucide-react';
+import { LayoutDashboard, Sun, BookOpen, BarChart3, Bell, Settings } from 'lucide-react';
 import clsx from 'clsx';
 
+// Simplified nav — What-If Simulator and Rules Engine removed.
+// Routes still exist in App.tsx if needed later.
 const NAV_ITEMS = [
   { path: '/command-center', label: 'Command Center', icon: LayoutDashboard },
   { path: '/briefing',       label: 'Morning Briefing', icon: Sun },
-  { path: '/simulator',      label: 'What-If',         icon: FlaskConical },
-  { path: '/campaigns',      label: 'Campaigns',       icon: BookOpen },
-  { path: '/rules',          label: 'Rules Engine',    icon: Sliders },
-  { path: '/reports',        label: 'Reports',         icon: BarChart3 },
+  { path: '/campaigns',      label: 'Campaigns',        icon: BookOpen },
+  { path: '/reports',        label: 'Reports',          icon: BarChart3 },
 ];
 
 export default function Layout() {
@@ -28,7 +28,7 @@ export default function Layout() {
           </span>
         </div>
 
-        {/* Nav — horizontal on desktop */}
+        {/* Nav */}
         <nav className="flex items-center gap-0.5">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
