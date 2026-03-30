@@ -3,13 +3,16 @@ import { TrendingUp, TrendingDown, Minus, AlertTriangle, Wifi, Fuel, Clock, Targ
 import clsx from 'clsx';
 import { MOCK_KPIS, MOCK_ALERTS, MOCK_MACHINES, STATUS_COLOR } from '@/data/mockFleet';
 
+// Simplified from original: removed ETA Variance card (3 KPI cards → 3, but removed the
+// "avg behind schedule" metric which was more of an automated-suggestion feature).
+
 interface KPICardProps {
   label: string;
   value: string;
   unit?: string;
   trend?: 'up' | 'down' | 'flat';
   trendLabel?: string;
-  trendGood?: boolean; // true = up is good, false = up is bad
+  trendGood?: boolean;
   icon: React.ReactNode;
   accent?: string;
   sublabel?: string;
@@ -50,7 +53,6 @@ function KPICard({ label, value, unit, trend, trendLabel, trendGood = true, icon
   );
 }
 
-// ── Mini fleet status bar ─────────────────────────────────────────────────────
 function FleetStatusBar() {
   const counts = MOCK_MACHINES.reduce((acc, m) => {
     acc[m.status] = (acc[m.status] || 0) + 1;
@@ -77,7 +79,6 @@ function FleetStatusBar() {
           {MOCK_KPIS.machines_online}/{MOCK_KPIS.machines_total} Online
         </span>
       </div>
-      {/* Stacked bar */}
       <div className="flex h-2 rounded-full overflow-hidden gap-px mb-2">
         {segments.map(({ key, color }) => {
           const pct = ((counts[key] || 0) / total) * 100;
@@ -86,7 +87,6 @@ function FleetStatusBar() {
           ) : null;
         })}
       </div>
-      {/* Legend */}
       <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
         {segments.map(({ key, color }) => (
           <div key={key} className="flex items-center gap-1 text-[9px] text-slate-500">
@@ -100,7 +100,6 @@ function FleetStatusBar() {
   );
 }
 
-// ── Alerts list ───────────────────────────────────────────────────────────────
 function AlertsList() {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const visible = MOCK_ALERTS.filter(a => !dismissed.has(a.id));
@@ -144,7 +143,6 @@ function AlertsList() {
   );
 }
 
-// ── Campaign progress ─────────────────────────────────────────────────────────
 function CampaignProgress() {
   const pct = Math.round((MOCK_KPIS.acres_campaign / MOCK_KPIS.acres_total) * 100);
   return (
@@ -172,12 +170,9 @@ function CampaignProgress() {
   );
 }
 
-// ── Main KPI Panel ─────────────────────────────────────────────────────────────
 export default function KPIPanel() {
   return (
     <div className="flex flex-col gap-2.5 h-full overflow-y-auto pr-0.5">
-
-      {/* Top 4 KPI cards */}
       <KPICard
         label="Utilization"
         value={`${MOCK_KPIS.utilization_pct}%`}
@@ -208,24 +203,8 @@ export default function KPIPanel() {
         accent="#FF9800"
         sublabel="est. today"
       />
-      <KPICard
-        label="ETA Variance"
-        value={`+${MOCK_KPIS.eta_variance_min}m`}
-        trend="up"
-        trendLabel="slight delay"
-        trendGood={false}
-        icon={<Clock size={13} />}
-        accent="#9C27B0"
-        sublabel="avg behind schedule"
-      />
-
-      {/* Fleet status bar */}
       <FleetStatusBar />
-
-      {/* Campaign progress */}
       <CampaignProgress />
-
-      {/* Alerts */}
       <AlertsList />
     </div>
   );
